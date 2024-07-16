@@ -95,16 +95,13 @@ public class EmailPassword {
     }
 
     public static AuthRecipeUserInfo signUp(TenantIdentifier tenantIdentifier, Storage storage, Main main,
-                                  @Nonnull String email, @Nonnull String password)
+                                            @Nonnull String email, @Nonnull String password)
             throws DuplicateEmailException, StorageQueryException, TenantOrAppNotFoundException,
             BadPermissionException {
 
         TenantConfig config = Multitenancy.getTenantInfo(main, tenantIdentifier);
         if (config == null) {
             throw new TenantOrAppNotFoundException(tenantIdentifier);
-        }
-        if (!config.emailPasswordConfig.enabled) {
-            throw new BadPermissionException("Email password login not enabled for tenant");
         }
 
         String hashedPassword = PasswordHashing.getInstance(main)
@@ -124,7 +121,7 @@ public class EmailPassword {
                         evStorage.startTransaction(con -> {
                             try {
                                 evStorage.updateIsEmailVerified_Transaction(tenantIdentifier.toAppIdentifier(), con,
-                                                newUser.getSupertokensUserId(), email, true);
+                                        newUser.getSupertokensUserId(), email, true);
                                 evStorage.commitTransaction(con);
 
                                 return null;
@@ -175,9 +172,6 @@ public class EmailPassword {
         if (config == null) {
             throw new TenantOrAppNotFoundException(tenantIdentifier);
         }
-        if (!config.emailPasswordConfig.enabled) {
-            throw new BadPermissionException("Email password login not enabled for tenant");
-        }
 
         PasswordHashingUtils.assertSuperTokensSupportInputPasswordHashFormat(
                 tenantIdentifier.toAppIdentifier(), main,
@@ -201,7 +195,8 @@ public class EmailPassword {
                 LoginMethod loginMethod = null;
                 for (AuthRecipeUserInfo currUser : allUsers) {
                     for (LoginMethod currLM : currUser.loginMethods) {
-                        if (currLM.email.equals(email) && currLM.recipeId == RECIPE_ID.EMAIL_PASSWORD && currLM.tenantIds.contains(tenantIdentifier.getTenantId())) {
+                        if (currLM.email.equals(email) && currLM.recipeId == RECIPE_ID.EMAIL_PASSWORD &&
+                                currLM.tenantIds.contains(tenantIdentifier.getTenantId())) {
                             userInfoToBeUpdated = currUser;
                             loginMethod = currLM;
                             break;
@@ -259,9 +254,6 @@ public class EmailPassword {
         if (config == null) {
             throw new TenantOrAppNotFoundException(tenantIdentifier);
         }
-        if (!config.emailPasswordConfig.enabled) {
-            throw new BadPermissionException("Email password login not enabled for tenant");
-        }
 
         AuthRecipeUserInfo[] users = StorageUtils.getEmailPasswordStorage(storage)
                 .listPrimaryUsersByEmail(tenantIdentifier, email);
@@ -270,7 +262,8 @@ public class EmailPassword {
         LoginMethod lM = null;
         for (AuthRecipeUserInfo currUser : users) {
             for (LoginMethod currLM : currUser.loginMethods) {
-                if (currLM.recipeId == RECIPE_ID.EMAIL_PASSWORD && currLM.email.equals(email) && currLM.tenantIds.contains(tenantIdentifier.getTenantId())) {
+                if (currLM.recipeId == RECIPE_ID.EMAIL_PASSWORD && currLM.email.equals(email) &&
+                        currLM.tenantIds.contains(tenantIdentifier.getTenantId())) {
                     user = currUser;
                     lM = currLM;
                 }
@@ -369,9 +362,6 @@ public class EmailPassword {
         TenantConfig config = Multitenancy.getTenantInfo(main, tenantIdentifier);
         if (config == null) {
             throw new TenantOrAppNotFoundException(tenantIdentifier);
-        }
-        if (!config.emailPasswordConfig.enabled) {
-            throw new BadPermissionException("Email password login not enabled for tenant");
         }
 
         while (true) {
@@ -633,7 +623,8 @@ public class EmailPassword {
                                     if (!userWithSameEmail.tenantIds.contains(tenantId)) {
                                         continue;
                                     }
-                                    if (userWithSameEmail.isPrimaryUser && !userWithSameEmail.getSupertokensUserId().equals(user.getSupertokensUserId())) {
+                                    if (userWithSameEmail.isPrimaryUser && !userWithSameEmail.getSupertokensUserId()
+                                            .equals(user.getSupertokensUserId())) {
                                         throw new StorageTransactionLogicException(
                                                 new EmailChangeNotAllowedException());
                                     }
